@@ -130,12 +130,22 @@ module.exports = function(grunt) {
 
 			if(!isRemotePath(src) && src.indexOf(options.tag)!=-1){
 				var inlineFilePath = path.resolve( path.dirname(filepath), src ).replace(/\?.*$/, '');	// 将参数去掉
-				var c = options.uglify ? UglifyJS.minify(inlineFilePath).code : grunt.file.read( inlineFilePath );
-				if( grunt.file.exists(inlineFilePath) ){
-					ret = '<script>\n' + c + '\n</script>';
-				}else{
+				if(!grunt.file.exists(inlineFilePath) ){ //check file exists before uglification for more specific error
 					grunt.log.error("Couldn't find " + inlineFilePath + '!');
+				}	
+				var c;
+				if(options.uglify){
+				    try{
+					c = UglifyJS.minify(inlineFilePath).code
+				    }catch(err){
+					grunt.log.error(err); //catch uglify error and send to grunt
+				    }
+				}else{
+				    c=grunt.file.read( inlineFilePath );
 				}
+				
+				ret = '<script>\n' + c + '\n</script>';
+				
 			}					
 			grunt.log.debug('ret = : ' + ret +'\n');
 			
